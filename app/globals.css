@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-mist-50 text-basalt-900 font-body antialiased;
+}
+
+/* Foco visible consistente para accesibilidad WCAG 2.1 (2.4.7) */
+:focus-visible {
+  outline: 3px solid theme("colors.cauce.500");
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-basalt-950 focus:text-mist-50 focus:px-4 focus:py-2;
+}

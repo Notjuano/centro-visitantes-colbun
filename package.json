@@ -1,0 +1,32 @@
+{
+  "name": "centro-visitantes-colbun",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema de Catálogo Digital Interactivo y Gestión de Experiencia para el Centro de Visitantes Colbún",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.441.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "@types/node": "^20.14.15",
+    "@types/react": "^18.3.4",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.15"
+  }
+}
