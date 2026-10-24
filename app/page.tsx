@@ -36,11 +36,11 @@ export default function InicioPage() {
               Centro de Visitantes Colbún
             </p>
             <h1 className="mt-4 max-w-2xl font-display text-4xl leading-tight sm:text-5xl">
-              El agua, la energía y el territorio, en un recorrido interactivo.
+              Mapa vivo del Bío Bío, para explorar el territorio.
             </h1>
             <p className="mt-6 max-w-xl text-lg text-mist-200">
-              Explora las estaciones educativas del centro, escucha audio descriptivo accesible
-              y comparte tu experiencia al finalizar la visita.
+              Recorre el cauce en una mesa táctil o desde el celular: activa capas, abre puntos de
+              interés, consulta datos del territorio y compara el paisaje en el tiempo.
             </p>
           </div>
         </section>
@@ -92,12 +92,20 @@ export default function InicioPage() {
               </button>
             </div>
 
-            <Link
-              href={`/catalogo?modo=${modo}`}
-              className="mt-8 inline-flex items-center justify-center bg-ember-500 px-8 py-3 font-medium text-basalt-950 transition-colors hover:bg-ember-400"
-            >
-              Comenzar recorrido
-            </Link>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href={`/mapa?modo=${modo}`}
+                className="inline-flex items-center justify-center bg-ember-500 px-8 py-3 font-medium text-basalt-950 transition-colors hover:bg-ember-400"
+              >
+                Abrir mapa interactivo
+              </Link>
+              <Link
+                href={`/catalogo?modo=${modo}`}
+                className="inline-flex items-center justify-center border border-basalt-700/20 px-8 py-3 font-medium text-basalt-900 transition-colors hover:border-cauce-500"
+              >
+                Ver catálogo
+              </Link>
+            </div>
           </div>
         </section>
       </main>

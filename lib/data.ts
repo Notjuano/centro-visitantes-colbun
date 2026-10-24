@@ -1,3 +1,7 @@
+/**
+ * por ahora estaremos usando datos estaticos, 
+ * pero en un futuro se podrian traer de un backend0
+ */
 export type Station = {
   id: string;
   numero: number;
@@ -8,6 +12,13 @@ export type Station = {
   audioUrl: string;
   duracionAudio: string;
   categoria: "energia" | "agua" | "sustentabilidad" | "comunidad";
+  mapa: {
+    /** Posición horizontal en el plano (0–100). */
+    x: number;
+    /** Posición vertical en el plano (0–100). */
+    y: number;
+    zona: string;
+  };
 };
 
 export const ESTACIONES: Station[] = [
@@ -21,7 +32,8 @@ export const ESTACIONES: Station[] = [
     imagenUrl: "/images/estacion-cuenca.svg",
     audioUrl: "/audio/cuenca-biobio.mp3",
     duracionAudio: "1:45",
-    categoria: "agua"
+    categoria: "agua",
+    mapa: { x: 58, y: 16, zona: "Ingreso del río" }
   },
   {
     id: "central-hidroelectrica",
@@ -33,7 +45,8 @@ export const ESTACIONES: Station[] = [
     imagenUrl: "/images/estacion-central.svg",
     audioUrl: "/audio/central-hidroelectrica.mp3",
     duracionAudio: "2:10",
-    categoria: "energia"
+    categoria: "energia",
+    mapa: { x: 18, y: 44, zona: "Casa de máquinas" }
   },
   {
     id: "biodiversidad-local",
@@ -45,7 +58,8 @@ export const ESTACIONES: Station[] = [
     imagenUrl: "/images/estacion-biodiversidad.svg",
     audioUrl: "/audio/biodiversidad-local.mp3",
     duracionAudio: "1:58",
-    categoria: "sustentabilidad"
+    categoria: "sustentabilidad",
+    mapa: { x: 82, y: 28, zona: "Mirador del bosque" }
   },
   {
     id: "comunidades-vecinas",
@@ -57,7 +71,8 @@ export const ESTACIONES: Station[] = [
     imagenUrl: "/images/estacion-comunidad.svg",
     audioUrl: "/audio/comunidades-vecinas.mp3",
     duracionAudio: "2:32",
-    categoria: "comunidad"
+    categoria: "comunidad",
+    mapa: { x: 76, y: 72, zona: "Plaza de las comunidades" }
   },
   {
     id: "energias-renovables",
@@ -69,7 +84,8 @@ export const ESTACIONES: Station[] = [
     imagenUrl: "/images/estacion-matriz.svg",
     audioUrl: "/audio/energias-renovables.mp3",
     duracionAudio: "2:05",
-    categoria: "energia"
+    categoria: "energia",
+    mapa: { x: 42, y: 68, zona: "Sala de exhibición" }
   }
 ];
 
