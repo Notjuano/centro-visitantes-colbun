@@ -35,3 +35,26 @@ body {
 .skip-link {
   @apply sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-basalt-950 focus:text-mist-50 focus:px-4 focus:py-2;
 }
+
+@keyframes mapa-pulso {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.55);
+    opacity: 0.12;
+  }
+}
+
+.mapa-marcador-pulso {
+  animation: mapa-pulso 2.4s ease-in-out infinite;
+}
+
+.visor-modelo-ar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  --poster-color: transparent;
+}

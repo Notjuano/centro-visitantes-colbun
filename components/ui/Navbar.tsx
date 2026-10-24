@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Droplets, LayoutDashboard, MessageSquareHeart, Waves } from "lucide-react";
+import { Droplets, LayoutDashboard, MapPinned, MessageSquareHeart, Waves } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ENLACES = [
   { href: "/", etiqueta: "Inicio", icono: Waves },
+  { href: "/mapa", etiqueta: "Mapa", icono: MapPinned },
   { href: "/catalogo", etiqueta: "Catálogo", icono: Droplets },
   { href: "/encuesta", etiqueta: "Encuesta", icono: MessageSquareHeart },
   { href: "/admin/dashboard", etiqueta: "Panel admin", icono: LayoutDashboard }

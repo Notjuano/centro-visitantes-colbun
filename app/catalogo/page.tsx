@@ -6,14 +6,20 @@ import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
 import { AudioPlayer } from "@/components/ui/AudioPlayer";
 import { StationCard, StationImage } from "@/components/ui/StationCard";
+import { TarjetaModeloAR } from "@/components/ar/TarjetaModeloAR";
+import { getRecursoAR } from "@/lib/ar";
 import { ESTACIONES, getEstacionPorId } from "@/lib/data";
 
 function CatalogoContenido() {
   const searchParams = useSearchParams();
   const modo = searchParams.get("modo") === "totem" ? "totem" : "movil";
-  const [estacionActivaId, setEstacionActivaId] = useState(ESTACIONES[0].id);
+  const estacionInicial = searchParams.get("estacion");
+  const [estacionActivaId, setEstacionActivaId] = useState(
+    estacionInicial && getEstacionPorId(estacionInicial) ? estacionInicial : ESTACIONES[0].id
+  );
 
   const estacionActiva = getEstacionPorId(estacionActivaId) ?? ESTACIONES[0];
+  const recursoAR = getRecursoAR(estacionActiva.id);
 
   return (
     <div className="flex min-h-screen flex-col bg-mist-50">
@@ -25,6 +31,10 @@ function CatalogoContenido() {
             Catálogo digital · Modo {modo === "totem" ? "Tótem" : "Móvil"}
           </p>
           <h1 className="mt-1 font-display text-3xl text-basalt-900">Estaciones educativas</h1>
+          <p className="mt-2 max-w-2xl text-basalt-700">
+            Elige una estación para ver su contenido, el modelo 3D y el código QR de realidad
+            aumentada, o abre el mapa vivo para explorar el territorio por capas.
+          </p>
         </header>
 
         <div className={`grid gap-8 ${modo === "totem" ? "lg:grid-cols-[1.4fr_1fr]" : "lg:grid-cols-[1fr_1.2fr]"}`}>
@@ -41,6 +51,8 @@ function CatalogoContenido() {
 
           <section aria-label="Detalle de la estación seleccionada" className="space-y-4">
             <StationImage estacion={estacionActiva} />
+
+            {recursoAR ? <TarjetaModeloAR recurso={recursoAR} /> : null}
 
             <div>
               <span className="text-xs uppercase tracking-wide text-cauce-600">

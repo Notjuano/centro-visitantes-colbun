@@ -9,6 +9,7 @@ type AudioPlayerProps = {
   titulo: string;
   duracion: string;
   transcripcion: string;
+  variante?: "claro" | "oscuro";
 };
 
 /**
@@ -16,7 +17,8 @@ type AudioPlayerProps = {
  * Cumple WCAG 2.1 (1.2.1 Audio y video solo grabado) al ofrecer
  * transcripción textual alternativa junto al control de reproducción.
  */
-export function AudioPlayer({ src, titulo, duracion, transcripcion }: AudioPlayerProps) {
+export function AudioPlayer({ src, titulo, duracion, transcripcion, variante = "claro" }: AudioPlayerProps) {
+  const oscuro = variante === "oscuro";
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [reproduciendo, setReproduciendo] = useState(false);
   const [mostrarTranscripcion, setMostrarTranscripcion] = useState(false);
@@ -42,14 +44,19 @@ export function AudioPlayer({ src, titulo, duracion, transcripcion }: AudioPlaye
   };
 
   return (
-    <div className="border border-basalt-700/20 bg-white p-4">
+    <div className={cn("p-4", oscuro ? "rounded-2xl border border-white/10 bg-white/5" : "border border-basalt-700/20 bg-white")}>
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={alternarReproduccion}
           aria-pressed={reproduciendo}
           aria-label={reproduciendo ? `Pausar audio: ${titulo}` : `Reproducir audio descriptivo: ${titulo}`}
-          className="flex h-11 w-11 shrink-0 items-center justify-center bg-basalt-950 text-mist-50 transition-colors hover:bg-cauce-600"
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center transition-colors",
+            oscuro
+              ? "rounded-full bg-cauce-500 text-basalt-950 hover:bg-cauce-400"
+              : "bg-basalt-950 text-mist-50 hover:bg-cauce-600"
+          )}
         >
           {reproduciendo ? <Pause className="h-5 w-5" aria-hidden="true" /> : <Play className="h-5 w-5" aria-hidden="true" />}
         </button>
@@ -58,17 +65,22 @@ export function AudioPlayer({ src, titulo, duracion, transcripcion }: AudioPlaye
           type="button"
           onClick={reiniciar}
           aria-label="Reiniciar audio"
-          className="flex h-9 w-9 shrink-0 items-center justify-center border border-basalt-700/30 text-basalt-700 transition-colors hover:border-cauce-500 hover:text-cauce-600"
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center transition-colors",
+            oscuro
+              ? "rounded-full border border-white/20 text-white/80 hover:border-cauce-400 hover:text-cauce-400"
+              : "border border-basalt-700/30 text-basalt-700 hover:border-cauce-500 hover:text-cauce-600"
+          )}
         >
           <RotateCcw className="h-4 w-4" aria-hidden="true" />
         </button>
 
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 text-sm font-medium text-basalt-900">
+          <p className={cn("flex items-center gap-2 text-sm font-medium", oscuro ? "text-white" : "text-basalt-900")}>
             <Volume2 className="h-4 w-4 shrink-0 text-cauce-600" aria-hidden="true" />
             Audio descriptivo
           </p>
-          <p className="truncate text-xs text-basalt-700">{titulo} · {duracion}</p>
+          <p className={cn("truncate text-xs", oscuro ? "text-white/70" : "text-basalt-700")}>{titulo} · {duracion}</p>
         </div>
       </div>
 
@@ -90,13 +102,16 @@ export function AudioPlayer({ src, titulo, duracion, transcripcion }: AudioPlaye
         type="button"
         onClick={() => setMostrarTranscripcion((prev) => !prev)}
         aria-expanded={mostrarTranscripcion}
-        className="mt-3 text-sm font-medium text-cauce-600 underline decoration-dotted underline-offset-4 hover:text-cauce-500"
+        className={cn(
+          "mt-3 text-sm font-medium underline decoration-dotted underline-offset-4",
+          oscuro ? "text-cauce-400 hover:text-cauce-300" : "text-cauce-600 hover:text-cauce-500"
+        )}
       >
         {mostrarTranscripcion ? "Ocultar transcripción" : "Ver transcripción de texto"}
       </button>
 
       {mostrarTranscripcion && (
-        <p className={cn("mt-2 border-l-2 border-cauce-500 pl-3 text-sm text-basalt-700")}>
+        <p className={cn("mt-2 border-l-2 border-cauce-500 pl-3 text-sm", oscuro ? "text-white/75" : "text-basalt-700")}>
           {transcripcion}
         </p>
       )}
