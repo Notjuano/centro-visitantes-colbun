@@ -30,7 +30,7 @@ export function PanelTiempoReal({ onCerrar }: PanelTiempoRealProps) {
   return (
     <section
       aria-label="Información en tiempo real"
-      className="absolute right-4 top-20 z-30 w-[min(100%-2rem,26rem)] overflow-hidden rounded-[28px] border border-white/10 bg-[#101820]/94 p-4 text-white shadow-2xl backdrop-blur-xl"
+      className="animar-aparecer absolute right-4 top-20 z-30 w-[min(100%-2rem,26rem)] overflow-hidden rounded-[28px] border border-white/10 bg-[#101820]/94 p-4 text-white shadow-2xl backdrop-blur-xl"
     >
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-display text-lg">Territorio en vivo</h2>

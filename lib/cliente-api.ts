@@ -19,10 +19,7 @@ export async function obtenerGeoJsonSala(): Promise<ColeccionHitos | null> {
 }
 
 export function featuresAPuntos(coleccion: ColeccionHitos): PuntoInteres[] {
-  return coleccion.features.map((feature) => {
-    const { latitud: _lat, longitud: _lon, ...punto } = feature.properties;
-    return punto;
-  });
+  return coleccion.features.map((feature) => feature.properties);
 }
 
 export async function iniciarSesion(correo: string, password: string) {

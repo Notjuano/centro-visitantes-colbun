@@ -36,20 +36,209 @@ body {
   @apply sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-basalt-950 focus:text-mist-50 focus:px-4 focus:py-2;
 }
 
-@keyframes mapa-pulso {
+/* ---------------------------------------------------------------------------
+   Visor satelital (Leaflet)
+--------------------------------------------------------------------------- */
+.leaflet-container {
+  background: #06131a;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.leaflet-container:focus,
+.leaflet-container:focus-visible {
+  outline: none;
+}
+
+.mapa-tiles-satelite {
+  filter: saturate(1.18) contrast(1.05) brightness(1.02);
+}
+
+.mapa-tiles-relieve {
+  filter: saturate(1.06) contrast(1.02) brightness(1.02);
+}
+
+.mapa-tiles-oscuro {
+  filter: saturate(0.85) contrast(1.15) brightness(0.58) hue-rotate(-10deg);
+}
+
+.mapa-tiles-etiquetas {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85));
+}
+
+/* ---------------------------------------------------------------------------
+   Superficies y lenguaje de movimiento
+--------------------------------------------------------------------------- */
+.glass {
+  background-color: rgba(9, 24, 30, 0.55);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38);
+}
+
+.aurora {
+  background-size: 220% 220%;
+  animation: aurora 20s ease-in-out infinite;
+}
+
+@keyframes aurora {
   0%,
   100% {
-    transform: scale(1);
-    opacity: 0.45;
+    background-position: 0% 50%;
   }
   50% {
-    transform: scale(1.55);
-    opacity: 0.12;
+    background-position: 100% 50%;
   }
 }
 
-.mapa-marcador-pulso {
-  animation: mapa-pulso 2.4s ease-in-out infinite;
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fundido {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animar-fundido {
+  animation: fundido 0.35s ease-out both;
+}
+
+@keyframes aparecer-lateral {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes flotar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes latir {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes brillo {
+  0% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(230%);
+  }
+}
+
+@keyframes marcador-entrada {
+  0% {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.55);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(3px) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes anillo {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animar-aparecer {
+  animation: aparecer 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animar-aparecer-lento {
+  animation: aparecer 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animar-aparecer-lateral {
+  animation: aparecer-lateral 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animar-flotar {
+  animation: flotar 6s ease-in-out infinite;
+}
+
+.animar-latir {
+  animation: latir 2.4s ease-in-out infinite;
+}
+
+.animar-girar-lento {
+  animation: girar 26s linear infinite;
+}
+
+.animar-entrada-marcador {
+  animation: marcador-entrada 0.55s cubic-bezier(0.22, 1.3, 0.36, 1) both;
+}
+
+.anillo-pulso {
+  animation: anillo 2.2s ease-out infinite;
+}
+
+.brillo-deslizante::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 80%
+  );
+  animation: brillo 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.rejilla-territorio {
+  background-image:
+    linear-gradient(rgba(63, 214, 196, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(63, 214, 196, 0.14) 1px, transparent 1px);
+  background-size: 46px 46px;
 }
 
 .visor-modelo-ar {

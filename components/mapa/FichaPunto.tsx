@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Bookmark, Info, Share2, Volume2, X } from "lucide-react";
+import { Bookmark, Info, MapPin, Share2, Volume2, X } from "lucide-react";
 import { AudioPlayer } from "@/components/ui/AudioPlayer";
 import { TarjetaModeloAR } from "@/components/ar/TarjetaModeloAR";
 import { getRecursoAR } from "@/lib/ar";
@@ -20,12 +20,12 @@ export function FichaPunto({ punto, onCerrar }: FichaPuntoProps) {
   const recursoAR = getRecursoAR(punto.id);
 
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[2px]">
+    <div className="animar-fundido absolute inset-0 z-40 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[2px]">
       <article
         role="dialog"
         aria-modal="true"
         aria-labelledby="titulo-ficha-punto"
-        className="grid max-h-[90dvh] w-full max-w-4xl overflow-y-auto rounded-[28px] border border-white/10 bg-[#101820]/95 shadow-2xl md:grid-cols-[1.4fr_1fr]"
+        className="animar-aparecer grid max-h-[90dvh] w-full max-w-4xl overflow-y-auto rounded-[28px] border border-white/10 bg-[#101820]/95 shadow-2xl md:grid-cols-[1.4fr_1fr]"
       >
         <div className="relative min-h-[280px]">
           <Image
@@ -60,6 +60,10 @@ export function FichaPunto({ punto, onCerrar }: FichaPuntoProps) {
               <h2 id="titulo-ficha-punto" className="mt-1 font-display text-2xl">
                 {punto.titulo}
               </h2>
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-white/60">
+                <MapPin className="h-3.5 w-3.5 text-cauce-400" aria-hidden="true" />
+                {punto.lugar}
+              </p>
             </div>
             <button
               type="button"

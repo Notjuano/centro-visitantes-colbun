@@ -16,7 +16,7 @@ export function PanelCapas({ abiertas, onCerrar, onAlternar }: PanelCapasProps) 
   return (
     <section
       aria-label="Selección de capas"
-      className="absolute left-[5.5rem] top-20 z-30 w-[min(100%-6rem,22rem)] rounded-[28px] border border-white/10 bg-[#101820]/92 p-3 shadow-2xl backdrop-blur-xl"
+      className="animar-aparecer-lateral absolute left-[5.5rem] top-20 z-30 w-[min(100%-6rem,22rem)] rounded-[28px] border border-white/10 bg-[#101820]/92 p-3 shadow-2xl backdrop-blur-xl"
     >
       <div className="mb-2 flex items-center justify-end">
         <button

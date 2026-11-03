@@ -92,8 +92,12 @@ export type PuntoInteres = {
   resumen: string;
   contenido: string;
   capa: CapaId;
-  x: number;
-  y: number;
+  /** Lugar o comuna de referencia donde se ubica el punto. */
+  lugar: string;
+  /** Latitud geográfica real dentro de la Región del Bío Bío. */
+  latitud: number;
+  /** Longitud geográfica real dentro de la Región del Bío Bío. */
+  longitud: number;
   icono: IconoMapa;
   color: string;
   imagen: string;
@@ -110,8 +114,9 @@ export const PUNTOS_INTERES: PuntoInteres[] = [
     contenido:
       "El bosque nativo del valle sostiene humedad, sombra y refugio para fauna local. Desde este punto se observa cómo la vegetación acompaña el cauce y protege las laderas.",
     capa: "bosque",
-    x: 36,
-    y: 38,
+    lugar: "Parque Nacional Nonguén, Concepción",
+    latitud: -36.865,
+    longitud: -72.975,
     icono: "leaf",
     color: "#3DDC84",
     imagen: "/images/mapa/territorio-vivo.jpg",
@@ -126,8 +131,9 @@ export const PUNTOS_INTERES: PuntoInteres[] = [
     contenido:
       "El estrechamiento del valle acelera el agua y forma saltos visibles desde el mirador. Esta estación explica el relieve, el caudal y el sonido del río como parte de la experiencia del centro.",
     capa: "agua",
-    x: 58,
-    y: 30,
+    lugar: "Salto del Laja, Laja",
+    latitud: -37.2056,
+    longitud: -72.3917,
     icono: "droplets",
     color: "#2EE0C0",
     imagen: "/images/mapa/poi-cascada.jpg",
@@ -146,8 +152,9 @@ export const PUNTOS_INTERES: PuntoInteres[] = [
     contenido:
       "En las orillas más lentas el río forma humedales. Son zonas de alimentación para aves y un indicador de la salud del ecosistema ribereño.",
     capa: "agua",
-    x: 51,
-    y: 49,
+    lugar: "Humedal de Lenga, Hualpén",
+    latitud: -36.77,
+    longitud: -73.17,
     icono: "droplets",
     color: "#3B82F6",
     imagen: "/images/mapa/poi-humedal.jpg",
@@ -162,8 +169,9 @@ export const PUNTOS_INTERES: PuntoInteres[] = [
     contenido:
       "El sendero conecta miradores y estaciones educativas. Está pensado para familias, estudiantes y visitas guiadas, con pausas de interpretación en cada tramo.",
     capa: "senderos",
-    x: 45,
-    y: 59,
+    lugar: "Ribera del Bío Bío, Nacimiento",
+    latitud: -37.5,
+    longitud: -72.67,
     icono: "footprints",
     color: "#F08A3A",
     imagen: "/images/mapa/territorio-vivo.jpg",
@@ -178,8 +186,9 @@ export const PUNTOS_INTERES: PuntoInteres[] = [
     contenido:
       "Desde este mirador se registran especies como el martín pescador y garzas. El audio descriptivo ayuda a identificar cantos y hábitos sin interrumpir el entorno.",
     capa: "aves",
-    x: 28,
-    y: 54,
+    lugar: "Desembocadura del Bío Bío, Hualpén",
+    latitud: -36.795,
+    longitud: -73.16,
     icono: "binoculars",
     color: "#9AA3AD",
     imagen: "/images/mapa/poi-martin-pescador.jpg",
@@ -194,8 +203,9 @@ export const PUNTOS_INTERES: PuntoInteres[] = [
     contenido:
       "El mirador ofrece una panorámica del cauce para comprender la forma del territorio. Es un punto frecuente en visitas educativas y registros visuales del paisaje.",
     capa: "flora",
-    x: 74,
-    y: 41,
+    lugar: "Cerro Caracol, Concepción",
+    latitud: -36.842,
+    longitud: -73.04,
     icono: "camera",
     color: "#8B6CFF",
     imagen: "/images/mapa/territorio-vivo.jpg",
@@ -210,8 +220,9 @@ export const PUNTOS_INTERES: PuntoInteres[] = [
     contenido:
       "El desnivel del valle permite transformar el movimiento del agua en electricidad. Esta capa muestra la relación entre el cauce, la infraestructura y la matriz renovable.",
     capa: "energia",
-    x: 63,
-    y: 66,
+    lugar: "Central Ralco, Alto Bío Bío",
+    latitud: -37.2667,
+    longitud: -71.65,
     icono: "wind",
     color: "#1ECAD3",
     imagen: "/images/estacion-central.svg",
@@ -226,8 +237,9 @@ export const PUNTOS_INTERES: PuntoInteres[] = [
     contenido:
       "Las localidades vecinas mantienen una relación histórica con el Bío Bío. Esta estación recoge testimonios sobre tradiciones, oficios y la vida cotidiana junto al agua.",
     capa: "patrimonio",
-    x: 68,
-    y: 74,
+    lugar: "Santa Bárbara, Alto Bío Bío",
+    latitud: -37.65,
+    longitud: -71.88,
     icono: "landmark",
     color: "#C4A574",
     imagen: "/images/estacion-comunidad.svg",

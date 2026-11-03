@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -15,14 +15,29 @@ import {
 } from "lucide-react";
 import { ComparadorHistorico } from "@/components/mapa/ComparadorHistorico";
 import { FichaPunto } from "@/components/mapa/FichaPunto";
-import { MarcadorPunto } from "@/components/mapa/MarcadorPunto";
 import { PanelCapas } from "@/components/mapa/PanelCapas";
 import { PanelGuia } from "@/components/mapa/PanelGuia";
 import { PanelTiempoReal } from "@/components/mapa/PanelTiempoReal";
+import type { CapaBaseId, FocoMapa } from "@/components/mapa/MapaSatelital";
 import { useCentinelaInactividad } from "@/hooks/useCentinelaInactividad";
 import { featuresAPuntos, obtenerGeoJsonSala } from "@/lib/cliente-api";
 import { CAPAS, PUNTOS_INTERES, type CapaId, type PuntoInteres } from "@/lib/mapa";
+import { CENTRO_BIOBIO, ZOOM_BIOBIO } from "@/lib/territorio";
 import { cn } from "@/lib/utils";
+
+const MapaSatelital = dynamic(
+  () => import("@/components/mapa/MapaSatelital").then((modulo) => modulo.MapaSatelital),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="absolute inset-0 z-0 flex items-center justify-center bg-basalt-950">
+        <p className="animar-latir text-xs uppercase tracking-[0.32em] text-cauce-400">
+          Preparando visor satelital
+        </p>
+      </div>
+    )
+  }
+);
 
 type PanelActivo = "capas" | "tiempo" | "comparar" | null;
 
@@ -30,7 +45,7 @@ const CAPAS_INICIALES = new Set<CapaId>(CAPAS.map((capa) => capa.id));
 
 /**
  * Kiosk UI SPA del tótem (CU-01, CU-03, CU-06).
- * Lienzo a pantalla completa, capas temáticas, fichas multimedia y reset de sala.
+ * Visor satelital a pantalla completa, capas temáticas, fichas multimedia y reset de sala.
  */
 export function MapaVivo() {
   const [puntos, setPuntos] = useState<PuntoInteres[]>(PUNTOS_INTERES);
@@ -40,6 +55,9 @@ export function MapaVivo() {
   const [puntoId, setPuntoId] = useState<string | null>(null);
   const [comparacion, setComparacion] = useState(52);
   const [rutaActiva, setRutaActiva] = useState("panorama");
+  const [capaBase, setCapaBase] = useState<CapaBaseId>("satelite");
+  const [foco, setFoco] = useState<FocoMapa | null>(null);
+  const [limites, setLimites] = useState<[number, number][] | null>(null);
 
   useEffect(() => {
     obtenerGeoJsonSala().then((coleccion) => {
@@ -54,6 +72,9 @@ export function MapaVivo() {
     setPuntoId(null);
     setComparacion(52);
     setRutaActiva("panorama");
+    setCapaBase("satelite");
+    setLimites(null);
+    setFoco({ latitud: CENTRO_BIOBIO.latitud, longitud: CENTRO_BIOBIO.longitud, zoom: ZOOM_BIOBIO });
   }, []);
 
   useCentinelaInactividad(restablecerSala);
@@ -66,16 +87,45 @@ export function MapaVivo() {
       puntos.filter((punto) => {
         if (!capasAbiertas.has(punto.capa)) return false;
         if (!termino) return true;
-        return `${punto.titulo} ${punto.resumen} ${punto.contenido}`.toLowerCase().includes(termino);
+        return `${punto.titulo} ${punto.lugar} ${punto.resumen} ${punto.contenido}`
+          .toLowerCase()
+          .includes(termino);
       }),
     [capasAbiertas, puntos, termino]
   );
+
+  const seleccionarPunto = useCallback(
+    (id: string) => {
+      const punto = puntos.find((item) => item.id === id);
+      setPuntoId(id);
+      setPanel(null);
+      if (punto) setFoco({ latitud: punto.latitud, longitud: punto.longitud, zoom: 13 });
+    },
+    [puntos]
+  );
+
+  const buscarEnTerritorio = () => {
+    if (puntosVisibles.length === 0) return;
+    if (puntosVisibles.length === 1) {
+      seleccionarPunto(puntosVisibles[0].id);
+      return;
+    }
+    setPuntoId(null);
+    setPanel(null);
+    setLimites(puntosVisibles.map((punto) => [punto.latitud, punto.longitud] as [number, number]));
+  };
 
   const aplicarRuta = (id: string, capas: CapaId[]) => {
     setRutaActiva(id);
     setCapasAbiertas(new Set(capas));
     setPuntoId(null);
     setPanel(null);
+    setFoco(null);
+    setLimites(
+      puntos
+        .filter((punto) => capas.includes(punto.capa))
+        .map((punto) => [punto.latitud, punto.longitud] as [number, number])
+    );
   };
 
   const alternarCapa = (id: CapaId) => {
@@ -94,41 +144,29 @@ export function MapaVivo() {
 
   return (
     <div className="relative h-[100dvh] overflow-hidden bg-basalt-950 text-white">
-      {panel === "comparar" ? (
+      <MapaSatelital
+        puntos={puntosVisibles}
+        puntoActivoId={puntoId}
+        onSeleccionar={seleccionarPunto}
+        capaBase={capaBase}
+        onCambiarCapaBase={setCapaBase}
+        foco={foco}
+        limites={limites}
+      />
+
+      {panel === "comparar" && (
         <ComparadorHistorico
           porcentaje={comparacion}
           onCambiar={setComparacion}
           onCerrar={() => setPanel(null)}
         />
-      ) : (
-        <Image
-          src="/images/mapa/territorio-vivo.jpg"
-          alt="Vista aérea del territorio del Bío Bío"
-          fill
-          priority
-          className="object-cover"
-          sizes="100vw"
-        />
       )}
-
-      {panel !== "comparar" &&
-        puntosVisibles.map((punto) => (
-          <MarcadorPunto
-            key={punto.id}
-            punto={punto}
-            seleccionado={punto.id === puntoId}
-            onSeleccionar={(id) => {
-              setPuntoId(id);
-              setPanel(null);
-            }}
-          />
-        ))}
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-50 flex items-start justify-between gap-4 p-4">
         <div className="pointer-events-auto flex items-start gap-3">
-        <nav
+          <nav
             aria-label="Herramientas del mapa"
-            className="flex flex-col items-center gap-2 rounded-full border border-white/10 bg-black/55 p-2 backdrop-blur-xl"
+            className="glass animar-aparecer flex flex-col items-center gap-2 rounded-full p-2"
           >
             <BotonHerramienta
               etiqueta="Capas del territorio"
@@ -173,8 +211,11 @@ export function MapaVivo() {
           </nav>
 
           <form
-            className="mt-1 flex h-12 w-[min(100vw-7rem,22rem)] items-center gap-2 rounded-full border border-white/10 bg-black/55 px-4 backdrop-blur-xl"
-            onSubmit={(evento) => evento.preventDefault()}
+            className="glass animar-aparecer mt-1 flex h-12 w-[min(100vw-7rem,22rem)] items-center gap-2 rounded-full px-4"
+            onSubmit={(evento) => {
+              evento.preventDefault();
+              buscarEnTerritorio();
+            }}
             role="search"
           >
             <Search className="h-4 w-4 shrink-0 text-white/70" aria-hidden="true" />
@@ -188,17 +229,20 @@ export function MapaVivo() {
               placeholder="Buscar en el territorio"
               className="h-full w-full bg-transparent text-sm text-white outline-none placeholder:text-white/50"
             />
+            <span className="shrink-0 rounded-full bg-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-white/60">
+              {puntosVisibles.length} puntos
+            </span>
           </form>
         </div>
 
         <div className="pointer-events-auto flex flex-col items-end gap-3">
           <Link
             href="/"
-            className="rounded-full border border-white/10 bg-black/55 px-4 py-2 text-xs uppercase tracking-[0.16em] text-white/80 backdrop-blur-xl hover:text-white"
+            className="glass animar-aparecer rounded-full px-4 py-2 text-xs uppercase tracking-[0.16em] text-white/80 transition-colors hover:text-white"
           >
             Mapa vivo del Bío Bío
           </Link>
-          <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-black/55 backdrop-blur-xl">
+          <div className="glass animar-aparecer relative flex h-14 w-14 items-center justify-center rounded-full">
             <span className="absolute top-1 text-[10px] font-semibold tracking-widest">N</span>
             <Compass className="h-6 w-6 text-white" aria-hidden="true" />
             <span className="sr-only">Norte</span>
@@ -218,18 +262,6 @@ export function MapaVivo() {
 
       {panel !== "comparar" && (
         <PanelGuia rutaActiva={rutaActiva} onSeleccionarRuta={aplicarRuta} onResetearSala={restablecerSala} />
-      )}
-
-      {panel !== "comparar" && (
-        <aside className="absolute bottom-4 right-4 z-20 hidden overflow-hidden rounded-2xl border border-white/15 shadow-2xl sm:block">
-          <Image
-            src="/images/mapa/minimap-chile.jpg"
-            alt="Ubicación del territorio en Chile"
-            width={176}
-            height={176}
-            className="h-36 w-36 object-cover"
-          />
-        </aside>
       )}
     </div>
   );
@@ -253,7 +285,7 @@ function BotonHerramienta({
       aria-pressed={activo}
       onClick={onClick}
       className={cn(
-        "flex h-11 w-11 items-center justify-center rounded-full text-white/85 transition-colors",
+        "flex h-11 w-11 items-center justify-center rounded-full text-white/85 transition-all duration-200",
         activo ? "bg-white text-basalt-950" : "hover:bg-white/10 hover:text-white"
       )}
     >

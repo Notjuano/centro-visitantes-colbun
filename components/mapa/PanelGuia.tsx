@@ -20,7 +20,7 @@ export function PanelGuia({ rutaActiva, onSeleccionarRuta, onResetearSala }: Pan
   return (
     <aside
       aria-label="Conducción de sala"
-      className="absolute bottom-4 left-4 z-30 max-w-[min(100%-2rem,22rem)] rounded-2xl border border-white/10 bg-black/60 p-3 text-white backdrop-blur-xl"
+      className="animar-aparecer absolute bottom-4 left-4 z-30 max-w-[min(100%-2rem,22rem)] rounded-2xl border border-white/10 bg-black/60 p-3 text-white backdrop-blur-xl"
     >
       <p className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-cauce-400">
         <Route className="h-3.5 w-3.5" aria-hidden="true" />

@@ -1,23 +1,29 @@
 /**
  * Capa de dominio territorial.
  * Convierte hitos a GeoJSON (Guía 2.2 / ficha de stack: JavaScript + GeoJSON)
- * para que el visor de sala pinte marcadores sin APIs de mapas en la nube.
+ * y entrega el encuadre geográfico real del visor satelital del Bío Bío.
  */
 
 import { CAPAS, PUNTOS_INTERES, type CapaId, type PuntoInteres } from "@/lib/mapa";
 
-/** Encuadre aproximado del lienzo aéreo del Bío Bío (sin Mapbox/Google). */
-const BOUNDS = {
-  oeste: -71.48,
-  este: -71.26,
-  norte: -35.58,
-  sur: -35.74
+/** Centro del visor satelital sobre la Región del Bío Bío. */
+export const CENTRO_BIOBIO = { latitud: -37.1, longitud: -72.45 };
+
+/** Nivel de acercamiento inicial del visor regional. */
+export const ZOOM_BIOBIO = 9;
+
+/** Encuadre aproximado de la Región del Bío Bío (cordillera a costa). */
+export const BOUNDS_BIOBIO = {
+  norte: -36.55,
+  sur: -38.05,
+  oeste: -73.6,
+  este: -71.1
 };
 
 export type FeatureHito = {
   type: "Feature";
   geometry: { type: "Point"; coordinates: [number, number] };
-  properties: PuntoInteres & { latitud: number; longitud: number };
+  properties: PuntoInteres;
 };
 
 export type ColeccionHitos = {
@@ -25,22 +31,12 @@ export type ColeccionHitos = {
   features: FeatureHito[];
 };
 
-/** Proyecta x/y del plano (0–100) a latitud/longitud para HITO_TERRITORIAL. */
-export function proyectarCoordenadas(x: number, y: number) {
-  const longitud = BOUNDS.oeste + (x / 100) * (BOUNDS.este - BOUNDS.oeste);
-  const latitud = BOUNDS.norte + (y / 100) * (BOUNDS.sur - BOUNDS.norte);
-  return {
-    latitud: Number(latitud.toFixed(6)),
-    longitud: Number(longitud.toFixed(6))
-  };
-}
-
+/** Proyecta un punto del catálogo a una geometría GeoJSON con coordenadas reales. */
 export function puntoAFeature(punto: PuntoInteres): FeatureHito {
-  const { latitud, longitud } = proyectarCoordenadas(punto.x, punto.y);
   return {
     type: "Feature",
-    geometry: { type: "Point", coordinates: [longitud, latitud] },
-    properties: { ...punto, latitud, longitud }
+    geometry: { type: "Point", coordinates: [punto.longitud, punto.latitud] },
+    properties: punto
   };
 }
 
@@ -50,6 +46,11 @@ export function coleccionHitosSala(puntos: PuntoInteres[] = PUNTOS_INTERES): Col
     type: "FeatureCollection",
     features: puntos.map(puntoAFeature)
   };
+}
+
+/** Coordenadas [latitud, longitud] listas para encuadrar el visor en Leaflet. */
+export function coordenadasDePuntos(puntos: PuntoInteres[]): [number, number][] {
+  return puntos.map((punto) => [punto.latitud, punto.longitud]);
 }
 
 /**
