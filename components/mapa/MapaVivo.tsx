@@ -22,7 +22,7 @@ import type { CapaBaseId, FocoMapa } from "@/components/mapa/MapaSatelital";
 import { useCentinelaInactividad } from "@/hooks/useCentinelaInactividad";
 import { featuresAPuntos, obtenerGeoJsonSala } from "@/lib/cliente-api";
 import { CAPAS, PUNTOS_INTERES, type CapaId, type PuntoInteres } from "@/lib/mapa";
-import { CENTRO_BIOBIO, ZOOM_BIOBIO } from "@/lib/territorio";
+import { BOUNDS_CAUCE } from "@/lib/territorio";
 import { cn } from "@/lib/utils";
 
 const MapaSatelital = dynamic(
@@ -73,8 +73,11 @@ export function MapaVivo() {
     setComparacion(52);
     setRutaActiva("panorama");
     setCapaBase("satelite");
-    setLimites(null);
-    setFoco({ latitud: CENTRO_BIOBIO.latitud, longitud: CENTRO_BIOBIO.longitud, zoom: ZOOM_BIOBIO });
+    setFoco(null);
+    setLimites([
+      [BOUNDS_CAUCE.sur, BOUNDS_CAUCE.oeste],
+      [BOUNDS_CAUCE.norte, BOUNDS_CAUCE.este]
+    ]);
   }, []);
 
   useCentinelaInactividad(restablecerSala);
@@ -99,7 +102,7 @@ export function MapaVivo() {
       const punto = puntos.find((item) => item.id === id);
       setPuntoId(id);
       setPanel(null);
-      if (punto) setFoco({ latitud: punto.latitud, longitud: punto.longitud, zoom: 13 });
+      if (punto) setFoco({ latitud: punto.latitud, longitud: punto.longitud, zoom: 14 });
     },
     [puntos]
   );

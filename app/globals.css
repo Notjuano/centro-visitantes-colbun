@@ -51,7 +51,7 @@ body {
 }
 
 .mapa-tiles-satelite {
-  filter: saturate(1.18) contrast(1.05) brightness(1.02);
+  filter: url(#mapa-realce-satelite) saturate(1.16) contrast(1.05) brightness(1.03);
 }
 
 .mapa-tiles-relieve {
@@ -64,6 +64,22 @@ body {
 
 .mapa-tiles-etiquetas {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85));
+}
+
+/* Trazado animado del cauce del Bío Bío sobre la imagen satelital */
+.cauce-aura {
+  filter: blur(3px);
+}
+
+.cauce-flujo {
+  stroke-dasharray: 10 16;
+  animation: cauce-flujo 5s linear infinite;
+}
+
+@keyframes cauce-flujo {
+  to {
+    stroke-dashoffset: -52;
+  }
 }
 
 /* ---------------------------------------------------------------------------

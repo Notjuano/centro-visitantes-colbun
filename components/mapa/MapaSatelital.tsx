@@ -3,10 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Compass, Layers3, Minus, Plus } from "lucide-react";
+import { Compass, Layers3, Minus, Plus, Waves } from "lucide-react";
 import { MarcadorPunto } from "@/components/mapa/MarcadorPunto";
 import type { PuntoInteres } from "@/lib/mapa";
-import { BOUNDS_BIOBIO, CENTRO_BIOBIO, ZOOM_BIOBIO } from "@/lib/territorio";
+import {
+  BOUNDS_BIOBIO,
+  CAUCE_BIOBIO,
+  CENTRO_BIOBIO,
+  ESQUINAS_CAUCE,
+  ZOOM_BIOBIO
+} from "@/lib/territorio";
 import { cn } from "@/lib/utils";
 
 /** Capa de referencia oficial de límites y localidades sobre la imagen satelital. */
@@ -80,9 +86,11 @@ export function MapaSatelital({
   const contenedorRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<L.Map | null>(null);
   const capaBaseRef = useRef<L.TileLayer | null>(null);
+  const capaCauceRef = useRef<L.LayerGroup | null>(null);
   const puntosRef = useRef<PuntoInteres[]>(puntos);
   const [posiciones, setPosiciones] = useState<Record<string, { x: number; y: number }>>({});
   const [listo, setListo] = useState(false);
+  const [cauceVisible, setCauceVisible] = useState(true);
 
   puntosRef.current = puntos;
 
@@ -135,14 +143,44 @@ export function MapaSatelital({
       className: "mapa-tiles-etiquetas"
     }).addTo(mapa);
 
+    mapa.createPane("cauce");
+    const paneCauce = mapa.getPane("cauce");
+    if (paneCauce) paneCauce.style.zIndex = "455";
+
+    capaCauceRef.current = L.layerGroup([
+      L.polyline(CAUCE_BIOBIO, {
+        pane: "cauce",
+        color: "#3fd6c4",
+        weight: 13,
+        opacity: 0.3,
+        lineCap: "round",
+        lineJoin: "round",
+        interactive: false,
+        className: "cauce-aura"
+      }),
+      L.polyline(CAUCE_BIOBIO, {
+        pane: "cauce",
+        color: "#d6fff6",
+        weight: 2.4,
+        opacity: 0.95,
+        lineCap: "round",
+        lineJoin: "round",
+        interactive: false,
+        className: "cauce-flujo"
+      })
+    ]).addTo(mapa);
+
     capaBaseRef.current = capaImagen;
     mapaRef.current = mapa;
 
     mapa.on("move zoom viewreset resize", recalcular);
-    recalcular();
-    setListo(true);
 
-    const temporizador = window.setTimeout(() => mapa.invalidateSize(), 150);
+    const temporizador = window.setTimeout(() => {
+      mapa.invalidateSize();
+      mapa.fitBounds(L.latLngBounds(ESQUINAS_CAUCE), { padding: [40, 40], maxZoom: 10 });
+      recalcular();
+      setListo(true);
+    }, 160);
 
     return () => {
       window.clearTimeout(temporizador);
@@ -150,8 +188,17 @@ export function MapaSatelital({
       mapa.remove();
       mapaRef.current = null;
       capaBaseRef.current = null;
+      capaCauceRef.current = null;
     };
   }, [recalcular]);
+
+  useEffect(() => {
+    const mapa = mapaRef.current;
+    const cauce = capaCauceRef.current;
+    if (!mapa || !cauce) return;
+    if (cauceVisible && !mapa.hasLayer(cauce)) cauce.addTo(mapa);
+    if (!cauceVisible && mapa.hasLayer(cauce)) mapa.removeLayer(cauce);
+  }, [cauceVisible]);
 
   useEffect(() => {
     if (listo) recalcular();
@@ -198,17 +245,28 @@ export function MapaSatelital({
     });
   }, [limites]);
 
-  const centrarRegion = () =>
-    mapaRef.current?.flyTo(
-      [CENTRO_BIOBIO.latitud, CENTRO_BIOBIO.longitud],
-      ZOOM_BIOBIO,
-      { duration: 1.1 }
-    );
+  const verCauceCompleto = () =>
+    mapaRef.current?.flyToBounds(L.latLngBounds(ESQUINAS_CAUCE), {
+      padding: [40, 40],
+      maxZoom: 10,
+      duration: 1.1
+    });
 
   const capaActiva = CAPAS_BASE.find((capa) => capa.id === capaBase) ?? CAPAS_BASE[0];
 
   return (
     <div className="absolute inset-0">
+      <svg className="pointer-events-none absolute h-0 w-0" aria-hidden="true" focusable="false">
+        <defs>
+          <filter id="mapa-realce-satelite" colorInterpolationFilters="sRGB">
+            <feConvolveMatrix
+              order="3"
+              preserveAlpha="true"
+              kernelMatrix="0 -0.16 0 -0.16 1.64 -0.16 0 -0.16 0"
+            />
+          </filter>
+        </defs>
+      </svg>
       <div ref={contenedorRef} className="absolute inset-0 z-0" />
 
       <div
@@ -271,11 +329,24 @@ export function MapaSatelital({
 
         <button
           type="button"
-          onClick={centrarRegion}
+          onClick={verCauceCompleto}
           className="glass animar-aparecer flex items-center gap-2 rounded-full px-3 py-2 text-xs text-white/85 transition-colors hover:text-white"
         >
           <Compass className="h-3.5 w-3.5" aria-hidden="true" />
-          Centrar región
+          Ver todo el cauce
+        </button>
+
+        <button
+          type="button"
+          aria-pressed={cauceVisible}
+          onClick={() => setCauceVisible((visible) => !visible)}
+          className={cn(
+            "glass animar-aparecer flex items-center gap-2 rounded-full px-3 py-2 text-xs transition-colors",
+            cauceVisible ? "text-cauce-400" : "text-white/60 hover:text-white"
+          )}
+        >
+          <Waves className="h-3.5 w-3.5" aria-hidden="true" />
+          Cauce Bío Bío
         </button>
 
         <p className="pointer-events-auto max-w-[15rem] text-right text-[10px] leading-tight text-white/55">
