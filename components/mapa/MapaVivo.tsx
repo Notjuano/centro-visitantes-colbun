@@ -166,10 +166,10 @@ export function MapaVivo() {
       )}
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-50 flex items-start justify-between gap-4 p-4">
-        <div className="pointer-events-auto flex items-start gap-3">
+        <div className="pointer-events-none flex items-start gap-3">
           <nav
             aria-label="Herramientas del mapa"
-            className="glass animar-aparecer flex flex-col items-center gap-2 rounded-full p-2"
+            className="glass animar-aparecer pointer-events-auto flex flex-col items-center gap-2 rounded-full p-2"
           >
             <BotonHerramienta
               etiqueta="Capas del territorio"
@@ -214,7 +214,7 @@ export function MapaVivo() {
           </nav>
 
           <form
-            className="glass animar-aparecer mt-1 flex h-12 w-[min(100vw-7rem,22rem)] items-center gap-2 rounded-full px-4"
+            className="glass animar-aparecer pointer-events-auto mt-1 flex h-12 w-[min(100vw-7rem,22rem)] items-center gap-2 rounded-full px-4"
             onSubmit={(evento) => {
               evento.preventDefault();
               buscarEnTerritorio();

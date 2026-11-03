@@ -11,7 +11,8 @@ import {
   CAUCE_BIOBIO,
   CENTRO_BIOBIO,
   ESQUINAS_CAUCE,
-  ZOOM_BIOBIO
+  ZOOM_BIOBIO,
+  suavizarTrazado
 } from "@/lib/territorio";
 import { cn } from "@/lib/utils";
 
@@ -19,9 +20,18 @@ import { cn } from "@/lib/utils";
 const ETIQUETAS_URL =
   "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}";
 
+/**
+ * Trazado del cauce suavizado con spline Catmull-Rom: los meandros quedan
+ * curvos y nítidos en vez de mostrarse como segmentos rectos al acercar.
+ */
+const CAUCE_SUAVE = suavizarTrazado(CAUCE_BIOBIO, 6);
+
 export type CapaBaseId = "satelite" | "relieve" | "oscuro";
 
 export type FocoMapa = { latitud: number; longitud: number; zoom: number };
+
+/** Capa del cauce con su peso base y su sensibilidad al nivel de zoom. */
+type CapaCauce = { nombre: string; capa: L.Polyline; peso: number; exponente: number };
 
 type DefinicionCapaBase = {
   id: CapaBaseId;
@@ -87,6 +97,7 @@ export function MapaSatelital({
   const mapaRef = useRef<L.Map | null>(null);
   const capaBaseRef = useRef<L.TileLayer | null>(null);
   const capaCauceRef = useRef<L.LayerGroup | null>(null);
+  const cauceCapasRef = useRef<CapaCauce[]>([]);
   const puntosRef = useRef<PuntoInteres[]>(puntos);
   const [posiciones, setPosiciones] = useState<Record<string, { x: number; y: number }>>({});
   const [listo, setListo] = useState(false);
@@ -104,6 +115,20 @@ export function MapaSatelital({
       siguiente[punto.id] = { x: proyeccion.x, y: proyeccion.y };
     });
     setPosiciones(siguiente);
+  }, []);
+
+  /**
+   * Escala el grosor del cauce según el nivel de zoom para que acompañe el
+   * ancho real del río: fino en la vista regional y definido al acercar.
+   */
+  const ajustarCauce = useCallback(() => {
+    const mapa = mapaRef.current;
+    if (!mapa) return;
+    const relativo = mapa.getZoom() - ZOOM_BIOBIO;
+    const factor = Math.max(0.7, Math.min(3, 1 + relativo * 0.26));
+    cauceCapasRef.current.forEach(({ capa, peso, exponente }) => {
+      capa.setStyle({ weight: Number((peso * Math.pow(factor, exponente)).toFixed(2)) });
+    });
   }, []);
 
   useEffect(() => {
@@ -147,50 +172,66 @@ export function MapaSatelital({
     const paneCauce = mapa.getPane("cauce");
     if (paneCauce) paneCauce.style.zIndex = "455";
 
-    capaCauceRef.current = L.layerGroup([
-      L.polyline(CAUCE_BIOBIO, {
+    // El cauce se compone de varias capas superpuestas: halo, lecho, línea base
+    // y dos trenes de destellos que circulan a distinta velocidad (más movimiento).
+    const definiciones: {
+      nombre: string;
+      color: string;
+      peso: number;
+      opacidad: number;
+      clase: string;
+      exponente: number;
+    }[] = [
+      { nombre: "aura", color: "#2ad3bd", peso: 22, opacidad: 0.3, clase: "cauce-aura", exponente: 0.55 },
+      { nombre: "lecho", color: "#0b5a60", peso: 7, opacidad: 0.5, clase: "cauce-lecho", exponente: 0.85 },
+      { nombre: "base", color: "#63f2df", peso: 2.8, opacidad: 0.92, clase: "cauce-base", exponente: 1 },
+      { nombre: "flujo", color: "#eafffb", peso: 3.4, opacidad: 0.95, clase: "cauce-flujo", exponente: 1 },
+      { nombre: "brillo", color: "#ffffff", peso: 1.6, opacidad: 0.9, clase: "cauce-brillo", exponente: 1 }
+    ];
+
+    cauceCapasRef.current = definiciones.map(({ nombre, color, peso, opacidad, clase, exponente }) => ({
+      nombre,
+      peso,
+      exponente,
+      capa: L.polyline(CAUCE_SUAVE, {
         pane: "cauce",
-        color: "#3fd6c4",
-        weight: 13,
-        opacity: 0.3,
+        color,
+        weight: peso,
+        opacity: opacidad,
         lineCap: "round",
         lineJoin: "round",
         interactive: false,
-        className: "cauce-aura"
-      }),
-      L.polyline(CAUCE_BIOBIO, {
-        pane: "cauce",
-        color: "#d6fff6",
-        weight: 2.4,
-        opacity: 0.95,
-        lineCap: "round",
-        lineJoin: "round",
-        interactive: false,
-        className: "cauce-flujo"
+        className: clase
       })
-    ]).addTo(mapa);
+    }));
+
+    capaCauceRef.current = L.layerGroup(cauceCapasRef.current.map(({ capa }) => capa)).addTo(mapa);
 
     capaBaseRef.current = capaImagen;
     mapaRef.current = mapa;
 
     mapa.on("move zoom viewreset resize", recalcular);
+    mapa.on("zoomend", ajustarCauce);
 
     const temporizador = window.setTimeout(() => {
       mapa.invalidateSize();
       mapa.fitBounds(L.latLngBounds(ESQUINAS_CAUCE), { padding: [40, 40], maxZoom: 10 });
       recalcular();
+      ajustarCauce();
       setListo(true);
     }, 160);
 
     return () => {
       window.clearTimeout(temporizador);
       mapa.off("move zoom viewreset resize", recalcular);
+      mapa.off("zoomend", ajustarCauce);
       mapa.remove();
       mapaRef.current = null;
       capaBaseRef.current = null;
       capaCauceRef.current = null;
+      cauceCapasRef.current = [];
     };
-  }, [recalcular]);
+  }, [recalcular, ajustarCauce]);
 
   useEffect(() => {
     const mapa = mapaRef.current;

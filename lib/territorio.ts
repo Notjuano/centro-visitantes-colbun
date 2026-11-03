@@ -75,6 +75,45 @@ export const CAUCE_BIOBIO: [number, number][] = [
   [-36.7963, -73.1665]
 ];
 
+/**
+ * Suaviza un trazado [lat, lng] mediante una spline de Catmull-Rom.
+ * Permite que el cauce se vea continuo y natural al acercar el visor,
+ * en lugar de mostrar los segmentos rectos del dato original.
+ */
+export function suavizarTrazado(trazado: [number, number][], pasos = 8): [number, number][] {
+  if (trazado.length < 3) return trazado;
+
+  const suave: [number, number][] = [trazado[0]];
+
+  for (let i = 0; i < trazado.length - 1; i += 1) {
+    const p0 = trazado[i - 1] ?? trazado[i];
+    const p1 = trazado[i];
+    const p2 = trazado[i + 1];
+    const p3 = trazado[i + 2] ?? trazado[i + 1];
+
+    for (let paso = 1; paso <= pasos; paso += 1) {
+      const t = paso / pasos;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const lat =
+        0.5 *
+        (2 * p1[0] +
+          (p2[0] - p0[0]) * t +
+          (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+          (3 * p1[0] - p0[0] - 3 * p2[0] + p3[0]) * t3);
+      const lng =
+        0.5 *
+        (2 * p1[1] +
+          (p2[1] - p0[1]) * t +
+          (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+          (3 * p1[1] - p0[1] - 3 * p2[1] + p3[1]) * t3);
+      suave.push([lat, lng]);
+    }
+  }
+
+  return suave;
+}
+
 export type FeatureHito = {
   type: "Feature";
   geometry: { type: "Point"; coordinates: [number, number] };
