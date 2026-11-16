@@ -13,7 +13,7 @@ Sistema de Catálogo Digital Interactivo y Gestión de Experiencia para el Centr
 
 ```
 app/
-  page.tsx                  Pantalla de inicio (selección de modo Móvil / Tótem)
+  page.tsx                  Mapa territorial 3D de Angostura (pantalla del tótem)
   mapa/page.tsx             Mapa Vivo del Bío Bío (capas, puntos, tiempo real, comparación)
   ar/[id]/page.tsx           Experiencia AR del modelo 3D (escaneo por QR)
   catalogo/page.tsx          Catálogo digital interactivo (estaciones + audio + AR)
@@ -22,11 +22,18 @@ app/
   layout.tsx, globals.css
 components/
   mapa/MapaVivo.tsx          Interfaz táctil a pantalla completa del mapa
+  mapa/MapaTerritorial3D.tsx Visor 3D del territorio (canvas, cámara y totems táctiles)
+  hub/                       Piezas compartidas por ambos visores (portada, filtros, ficha, QR)
   ui/Navbar.tsx, Footer.tsx, AudioPlayer.tsx, StationCard.tsx, FeedbackForm.tsx
 lib/
-  data.ts   Datos mock de estaciones y métricas
-  mapa.ts   Capas, puntos de interés y métricas del territorio
-  utils.ts  Utilidad cn() para clases Tailwind
+  conexion.ts      Pool de PostgreSQL y transacciones
+  persistencia.ts  Lectura/escritura de hitos contra la base de datos
+  data.ts          Datos mock de estaciones y métricas
+  mapa.ts          Capas, puntos de interés y métricas del territorio
+  utils.ts         Utilidad cn() para clases Tailwind
+server/sql/
+  001_schema.sql           Tablas base del modelo de datos
+  002_contrato_api.sql     Columnas, capas y vista que usa la API de sala
 public/
   images/   Ilustraciones y fotografías del mapa vivo
   audio/    Carpeta destino de los archivos de audio descriptivo (.mp3)
@@ -51,6 +58,37 @@ npm run dev
 La app queda disponible en `http://localhost:3000`.
 
 El recorrido in situ parte en `/mapa` (Mapa Vivo del Bío Bío). Ahí se pueden activar capas, abrir puntos de interés, ver información en vivo y comparar el territorio en el tiempo.
+
+## Base de datos (PostgreSQL en LAN)
+
+La pantalla `/` y la API de sala leen los hitos desde PostgreSQL, no desde `data/hitos.json`.
+
+```bash
+# 1. Credenciales del tótem
+cp .env.example .env.local       # ajusta DATABASE_URL con la clave real de la sala
+
+# 2. Esquema (pgAdmin 4: Query Tool, o psql)
+#    server/sql/001_schema.sql  y luego  server/sql/002_contrato_api.sql
+#    Ambos son idempotentes: se pueden volver a ejecutar.
+
+# 3. Verificar cómo está la base
+npm run db:check
+
+# 4. Cargar los 8 hitos del catálogo (con el servidor levantado)
+npm run dev &
+npm run db:sembrar
+```
+
+`npm run db:sembrar` pasa por `POST /api/auth/login` y `POST /api/hitos`, así que escribe por el mismo camino que el backoffice en lugar de duplicar el SQL.
+
+Qué hace cada pieza:
+
+- `lib/conexion.ts` — Pool único desde `DATABASE_URL` y helper de transacciones.
+- `lib/persistencia.ts` — lee `v_punto_interes` y reparte un `PuntoInteres` entre `hito_territorial` e `imagen`/`audio` en `recurso_multimedia`.
+- `v_punto_interes` — clave a clave el contrato del frontend, así que el visor no cambió al migrar de JSON a SQL.
+- Deshabilitar un hito deja `visible_en_sala = FALSE` (histórico conservado) en lugar de borrar la fila.
+
+En sala, `NEXT_PUBLIC_AR_BASE_URL` debe apuntar a la IP del tótem para que el QR de la pantalla se abra desde el celular.
 
 ## Realidad aumentada
 
