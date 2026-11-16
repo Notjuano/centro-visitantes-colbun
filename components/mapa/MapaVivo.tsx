@@ -13,6 +13,9 @@ import {
   SplitSquareHorizontal,
   UserRound
 } from "lucide-react";
+import { BarraCategorias, BotonesSala, type CategoriaHub } from "@/components/hub/BarraCategorias";
+import { CapaReposo } from "@/components/hub/CapaReposo";
+import { QrSala } from "@/components/hub/QrSala";
 import { ComparadorHistorico } from "@/components/mapa/ComparadorHistorico";
 import { FichaPunto } from "@/components/mapa/FichaPunto";
 import { PanelCapas } from "@/components/mapa/PanelCapas";
@@ -43,6 +46,11 @@ type PanelActivo = "capas" | "tiempo" | "comparar" | null;
 
 const CAPAS_INICIALES = new Set<CapaId>(CAPAS.map((capa) => capa.id));
 
+const CATEGORIAS_SALA: CategoriaHub[] = [
+  { etiqueta: "Todas", color: "#64748b" },
+  ...CAPAS.map((capa) => ({ etiqueta: capa.nombre, color: capa.color }))
+];
+
 /**
  * Kiosk UI SPA del tótem (CU-01, CU-03, CU-06).
  * Visor satelital a pantalla completa, capas temáticas, fichas multimedia y reset de sala.
@@ -58,11 +66,17 @@ export function MapaVivo() {
   const [capaBase, setCapaBase] = useState<CapaBaseId>("satelite");
   const [foco, setFoco] = useState<FocoMapa | null>(null);
   const [limites, setLimites] = useState<[number, number][] | null>(null);
+  const [modoReposo, setModoReposo] = useState(true);
 
   useEffect(() => {
     obtenerGeoJsonSala().then((coleccion) => {
       if (coleccion) setPuntos(featuresAPuntos(coleccion));
     });
+  }, []);
+
+  useEffect(() => {
+    // El celular llega por QR: entra directo al mapa, sin portada de sala.
+    if (window.matchMedia("(max-width: 767px)").matches) setModoReposo(false);
   }, []);
 
   const restablecerSala = useCallback(() => {
@@ -80,7 +94,22 @@ export function MapaVivo() {
     ]);
   }, []);
 
-  useCentinelaInactividad(restablecerSala);
+  const irAPortada = useCallback(() => {
+    restablecerSala();
+    setModoReposo(true);
+  }, [restablecerSala]);
+
+  const iniciarExploracion = useCallback(() => {
+    restablecerSala();
+    setModoReposo(false);
+  }, [restablecerSala]);
+
+  useCentinelaInactividad(irAPortada, !modoReposo);
+
+  const alternarPantallaCompleta = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else document.documentElement.requestFullscreen().catch(() => {});
+  };
 
   const puntoActivo = puntoId ? puntos.find((punto) => punto.id === puntoId) : undefined;
   const termino = busqueda.trim().toLowerCase();
@@ -140,6 +169,20 @@ export function MapaVivo() {
     });
   };
 
+  const estaCapaAbierta = (etiqueta: string) =>
+    etiqueta === "Todas"
+      ? capasAbiertas.size === CAPAS.length
+      : CAPAS.some((capa) => capa.nombre === etiqueta && capasAbiertas.has(capa.id));
+
+  const seleccionarCategoria = (etiqueta: string) => {
+    if (etiqueta === "Todas") {
+      setCapasAbiertas(new Set(CAPAS.map((capa) => capa.id)));
+      return;
+    }
+    const capa = CAPAS.find((item) => item.nombre === etiqueta);
+    if (capa) alternarCapa(capa.id);
+  };
+
   const alternarPanel = (siguiente: PanelActivo) => {
     setPanel((actual) => (actual === siguiente ? null : siguiente));
     if (siguiente !== null) setPuntoId(null);
@@ -165,7 +208,12 @@ export function MapaVivo() {
         />
       )}
 
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-50 flex items-start justify-between gap-4 p-4">
+      <header
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 z-50 flex flex-wrap items-start justify-between gap-4 p-4",
+          modoReposo && "hidden"
+        )}
+      >
         <div className="pointer-events-none flex items-start gap-3">
           <nav
             aria-label="Herramientas del mapa"
@@ -239,16 +287,37 @@ export function MapaVivo() {
         </div>
 
         <div className="pointer-events-auto flex flex-col items-end gap-3">
-          <Link
-            href="/"
-            className="glass animar-aparecer rounded-full px-4 py-2 text-xs uppercase tracking-[0.16em] text-white/80 transition-colors hover:text-white"
+          <BarraCategorias
+            categorias={CATEGORIAS_SALA}
+            estaActiva={estaCapaAbierta}
+            onSeleccionar={seleccionarCategoria}
+            className="hidden md:flex"
           >
-            Mapa vivo del Bío Bío
-          </Link>
-          <div className="glass animar-aparecer relative flex h-14 w-14 items-center justify-center rounded-full">
-            <span className="absolute top-1 text-[10px] font-semibold tracking-widest">N</span>
-            <Compass className="h-6 w-6 text-white" aria-hidden="true" />
-            <span className="sr-only">Norte</span>
+            <BotonesSala
+              onVistaGeneral={restablecerSala}
+              onPantallaCompleta={alternarPantallaCompleta}
+              onPortada={irAPortada}
+            />
+          </BarraCategorias>
+
+          <div className="flex items-start gap-3">
+            <Link
+              href="/"
+              aria-label="Volver al mapa territorial 3D de Angostura"
+              className="animar-aparecer rounded-2xl border border-amber-500/30 bg-slate-900/90 px-5 py-3 text-right shadow-2xl backdrop-blur-md transition hover:border-amber-500/70"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-400">
+                Colbún S.A. {"•"} Centro de Visitantes
+              </p>
+              <h1 className="text-lg font-bold tracking-wide text-slate-100 md:text-xl">
+                Mapa Vivo del Bío Bío
+              </h1>
+            </Link>
+            <div className="glass animar-aparecer relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full">
+              <span className="absolute top-1 text-[10px] font-semibold tracking-widest">N</span>
+              <Compass className="h-6 w-6 text-white" aria-hidden="true" />
+              <span className="sr-only">Norte</span>
+            </div>
           </div>
         </div>
       </header>
@@ -263,8 +332,24 @@ export function MapaVivo() {
       {panel === "tiempo" && <PanelTiempoReal onCerrar={() => setPanel(null)} />}
       {puntoActivo && <FichaPunto key={puntoActivo.id} punto={puntoActivo} onCerrar={() => setPuntoId(null)} />}
 
-      {panel !== "comparar" && (
+      {panel !== "comparar" && !modoReposo && (
         <PanelGuia rutaActiva={rutaActiva} onSeleccionarRuta={aplicarRuta} onResetearSala={restablecerSala} />
+      )}
+
+      {modoReposo && (
+        <CapaReposo
+          marca="COLBÚN S.A. • CENTRO DE VISITANTES"
+          pretitulo="EXPLORA Y DESCUBRE"
+          titulo="MAPA VIVO DEL BÍO BÍO"
+          onIniciar={iniciarExploracion}
+        >
+          <QrSala
+            ruta="/"
+            rotulo="Angostura en 3D"
+            detalle="Escanea y explora el territorio"
+            ubicacion="flujo"
+          />
+        </CapaReposo>
       )}
     </div>
   );
