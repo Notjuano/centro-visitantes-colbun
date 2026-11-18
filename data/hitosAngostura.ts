@@ -13,8 +13,6 @@ export interface HitoFeature {
     contenido_didactico: string;
     horario_acceso: string;
     modelo_3d?: string;
-    audio_url?: string;
-    duracion_audio?: string;
   };
   geometry: {
     type: "Point";
