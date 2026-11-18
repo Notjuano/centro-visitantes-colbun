@@ -1,9 +1,9 @@
-import MapaTerritorial from "@/components/mapa/MapaTerritorial";
+import { MapaVivo } from "@/components/mapa/MapaVivo";
 
 export default function MapaPage() {
   return (
     <main id="contenido-principal">
-      <MapaTerritorial />
+      <MapaVivo />
     </main>
   );
 }

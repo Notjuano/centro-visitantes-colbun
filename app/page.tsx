@@ -1,9 +1,9 @@
-import MapaTerritorial3D from "@/components/mapa/MapaTerritorial3D";
+import MapaTerritorial from "@/components/mapa/MapaTerritorial";
 
 export default function InicioPage() {
   return (
     <main id="contenido-principal" className="h-[100dvh] w-screen overflow-hidden">
-      <MapaTerritorial3D />
+      <MapaTerritorial />
     </main>
   );
 }
