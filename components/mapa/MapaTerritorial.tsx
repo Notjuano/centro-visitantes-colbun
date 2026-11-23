@@ -6,6 +6,7 @@ import {
   HitoFeature,
   CategoriaHito,
 } from "@/data/hitosAngostura";
+import { obtenerHitos } from "@/lib/hitosStore";
 
 const WORLD_WIDTH = 2400;
 const WORLD_HEIGHT = 1600;
@@ -505,6 +506,14 @@ export default function MapaTerritorial() {
   const [galeriaAbierta, setGaleriaAbierta] = useState<boolean>(false);
   const [indiceDestacado, setIndiceDestacado] = useState<number>(0);
   const [imagenExpandida, setImagenExpandida] = useState<boolean>(false);
+  const [hitosMapa, setHitosMapa] = useState<HitoFeature[]>(HITOS_ANGOSTURA_MOCK.features);
+
+useEffect(() => {
+  setHitosMapa(obtenerHitos());
+  const sincronizar = () => setHitosMapa(obtenerHitos());
+  window.addEventListener("hitos-actualizados", sincronizar);
+  return () => window.removeEventListener("hitos-actualizados", sincronizar);
+}, []);
 
   const lastInteractionRef = useRef<number>(0);
   const pinchDistRef = useRef<number | null>(null);
@@ -1275,7 +1284,7 @@ export default function MapaTerritorial() {
       }
 
       if (!modoReposo) {
-        const hitosFiltrados = HITOS_ANGOSTURA_MOCK.features
+        const hitosFiltrados = hitosMapa
           .filter(
             (f) =>
               categoriaActiva === "Todas" ||
@@ -1449,7 +1458,7 @@ export default function MapaTerritorial() {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
     };
-  }, [modoReposo, categoriaActiva, hitoSeleccionado]);
+  }, [modoReposo, categoriaActiva, hitoSeleccionado, hitosMapa]);
 
   const screenToWorld = (clientX: number, clientY: number) => {
     const cam = camRef.current;
@@ -1472,7 +1481,7 @@ export default function MapaTerritorial() {
     const cam = camRef.current;
     const { worldX, worldY } = screenToWorld(clientX, clientY);
 
-    const hitosVisibles = HITOS_ANGOSTURA_MOCK.features.filter(
+    const hitosVisibles = hitosMapa.filter(
       (f) =>
         categoriaActiva === "Todas" ||
         f.properties.categoria === categoriaActiva
@@ -1664,7 +1673,7 @@ export default function MapaTerritorial() {
                   Colbún S.A. • Destino Biobío
                 </p>
                 <h1 className="font-serif text-sm sm:text-base md:text-lg font-bold text-[#f0e6d2] tracking-wider uppercase">
-                  Parque Angostura (12 Hitos)
+                  Parque Angostura ({hitosMapa.length} Hitos)
                 </h1>
               </div>
 
